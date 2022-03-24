@@ -1,4 +1,4 @@
-namespace API.Data
+namespace API.DataCLS
 {
     using global::API.Entities;
     using Microsoft.EntityFrameworkCore;
