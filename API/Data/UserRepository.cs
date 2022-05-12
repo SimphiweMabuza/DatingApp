@@ -9,6 +9,7 @@ using API.Interfaces;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
+
 namespace API.Data
 {
     public class UserRepository : IUserRepository
@@ -20,6 +21,7 @@ namespace API.Data
             _mapper = mapper;
             _context = context;
         }
+
         public async Task<MemberDto> GetMemberAsync(string username)
         {
             return await _context.Users
@@ -45,7 +47,7 @@ namespace API.Data
                 "created" => query.OrderByDescending(u => u.Created),
                 _ => query.OrderByDescending(u => u.LastActive)
             };
-
+            
             return await PagedList<MemberDto>.CreateAsync(query.ProjectTo<MemberDto>(_mapper
                 .ConfigurationProvider).AsNoTracking(), 
                     userParams.PageNumber, userParams.PageSize);
@@ -55,22 +57,28 @@ namespace API.Data
         {
             return await _context.Users.FindAsync(id);
         }
+
         public async Task<AppUser> GetUserByUsernameAsync(string username)
         {
             return await _context.Users
                 .Include(p => p.Photos)
                 .SingleOrDefaultAsync(x => x.UserName == username);
         }
+
+        public async Task<string> GetUserGender(string username)
+        {
+            return await _context.Users
+                .Where(x => x.UserName == username)
+                .Select(x => x.Gender).FirstOrDefaultAsync();
+        }
+
         public async Task<IEnumerable<AppUser>> GetUsersAsync()
         {
             return await _context.Users
                 .Include(p => p.Photos)
                 .ToListAsync();
         }
-        public async Task<bool> SaveAllAsync()
-        {
-            return await _context.SaveChangesAsync() > 0;
-        }
+
         public void Update(AppUser user)
         {
             _context.Entry(user).State = EntityState.Modified;
