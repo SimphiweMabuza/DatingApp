@@ -19,17 +19,13 @@ namespace API.Data
 
         public DbSet<UserLike> Likes { get; set; }
         public DbSet<Message> Messages { get; set; }
+        public DbSet<Photo> Photos { get; set; }
         public DbSet<Group> Groups { get; set; }
         public DbSet<Connection> Connections { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-
-            builder.Entity<Group>()
-                .HasMany(x => x.Connections)
-                .WithOne()
-                .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<AppUser>()
                 .HasMany(ur => ur.UserRoles)
@@ -69,6 +65,8 @@ namespace API.Data
                 .WithMany(m => m.MessagesSent)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            builder.Entity<Photo>().HasQueryFilter(p => p.IsApproved);
+
             builder.ApplyUtcDateTimeConverter();
         }
     }
@@ -88,9 +86,6 @@ namespace API.Data
         public static Boolean IsUtc(this IMutableProperty property) =>
           ((Boolean?)property.FindAnnotation(IsUtcAnnotation)?.Value) ?? true;
 
-        /// <summary>
-        /// Make sure this is called after configuring all your entities.
-        /// </summary>
         public static void ApplyUtcDateTimeConverter(this ModelBuilder builder)
         {
             foreach (var entityType in builder.Model.GetEntityTypes())
