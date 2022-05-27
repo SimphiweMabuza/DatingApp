@@ -18,10 +18,12 @@ namespace API.Data
         }
 
         public DbSet<UserLike> Likes { get; set; }
+        public DbSet<UserView> Views{ get; set; }
         public DbSet<Message> Messages { get; set; }
         public DbSet<Photo> Photos { get; set; }
         public DbSet<Group> Groups { get; set; }
         public DbSet<Connection> Connections { get; set; }
+    
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -53,6 +55,21 @@ namespace API.Data
                 .HasOne(s => s.LikedUser)
                 .WithMany(l => l.LikedByUsers)
                 .HasForeignKey(s => s.LikedUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<UserView>()
+                .HasKey(k => new { k.SourceUserId, k.ViewedUserId });
+
+            builder.Entity<UserView>()
+                .HasOne(s => s.SourceUser)
+                .WithMany(l => l.ViewedUsers)
+                .HasForeignKey(s => s.SourceUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<UserView>()
+                .HasOne(s => s.ViewedUser)
+                .WithMany(l => l.ViewedByUsers)
+                .HasForeignKey(s => s.ViwedUserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<Message>()

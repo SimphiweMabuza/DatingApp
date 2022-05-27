@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using CoudinaryDotNet.Actions;
+using CloudinaryDotNet.Actions;
 using Microsoft.AspNetCore.Http;
 
 namespace API.Interfaces
@@ -7,6 +7,6 @@ namespace API.Interfaces
     public interface IPhotoServices 
     {
         Task<ImageUploadResult> AddPhotoAsync(IFormFile file);
-        Task<IDeletionResult> DeletePhotoAsync(string publicId);
+        Task<DeletionResult> DeletePhotoAsync(string publicId);
     }
 }

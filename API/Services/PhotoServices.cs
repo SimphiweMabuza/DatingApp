@@ -7,7 +7,8 @@ using System.Threading.Tasks;
 using API.Entities;
 using API.Helpers;
 using API.Interfaces;
-using CoudinaryDotNet;
+using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 
@@ -39,6 +40,7 @@ namespace API.Services
             if(file.Length > 0)
             {
                 await using var stream = file.OpenUploadStream();
+
                 var uploadParams = new ImageUploadParams
                 {
                     File = new FileDescription(file.FileName, stream),
@@ -50,13 +52,23 @@ namespace API.Services
             return uploadResult;
         }
 
-        async Task<IDeletionResult> DeletePhotoAsync(string publicId)
+        Task<ImageUploadResult> IPhotoServices.AddPhotoAsync(IFormFile file)
+        {
+            throw new NotImplementedException();
+        }
+
+        async Task<DeletionResult> DeletePhotoAsync(string publicId)
         {
             var deleteParams = new DeletionParams(publicId);
 
             var result = await _cloudinary.DestroyAsync(deleteParams);
 
             return result;
+        }
+
+        Task<DeletionResult> IPhotoServices.DeletePhotoAsync(string publicId)
+        {
+            throw new NotImplementedException();
         }
     }
 }
