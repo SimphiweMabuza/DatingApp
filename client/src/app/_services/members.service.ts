@@ -87,6 +87,16 @@ export class MembersService {
   deletePhoto(photoId: number) {
     return this.http.delete(this.baseUrl + 'users/delete-photo/' + photoId);
   }
+  
+  addView(username: string) {
+    return this.http.post(this.baseUrl + 'views/' + username, {})
+  }
+
+  getViews(predicate: string, pageNumber, pageSize) {
+    let params = getPaginationHeaders(pageNumber, pageSize);
+    params = params.append('predicate', predicate);
+    return getPaginatedResult<Partial<Member[]>>(this.baseUrl + 'Views', params, this.http);
+  }
 
   addLike(username: string) {
     return this.http.post(this.baseUrl + 'likes/' + username, {})

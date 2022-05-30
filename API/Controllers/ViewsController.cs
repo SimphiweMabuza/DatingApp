@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using API.DTOs;
 using API.Entities;
 using API.Extensions;
+using API.Extentions;
 using API.Helpers;
 using API.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -13,47 +14,41 @@ namespace API.Controllers
     [Authorize]
     public class ViewsController : BaseApiController
     {
-        private readonly IUserRepository _userRepository;
-        private readonly IViewsRepository _ViewsRepository;
-        public ViewsController(IUserRepository userRepository, IViewsRepository ViewsRepository)
+        private readonly IUnitOfWork _unitOfWork;
+        public ViewsController(IUnitOfWork unitOfWork)
         {
-            _ViewsRepository = ViewsRepository;
-            _userRepository = userRepository;
+            _unitOfWork = unitOfWork;
         }
 
         [HttpPost("{username}")]
-        public async Task<ActionResult> AddLike(string username)
+        public async Task<ActionResult> AddView(string username)
         {
             var sourceUserId = User.GetUserId();
-            var ViewdUser = await _userRepository.GetUserByUsernameAsync(username);
-            var sourceUser = await _ViewsRepository.GetUserWithLikes(sourceUserId);
-            
-            if (ViewdUser == null) return NotFound();
+            var ViewedUser =  await _unitOfWork.UserRepository.GetUserByUsernameAsync(username);
+            var sourceUser = await _unitOfWork.ViewsRepository.GetUserWithViews(sourceUserId);
 
-            if (sourceUser.UserName == username) return BadRequest("You cannot View yourself");
+            if (ViewedUser == null) return NotFound();
 
-            var userView = await _ViewsRepository.GetUserLike(sourceUserId, ViewdUser.Id);
-
-            if (userView != null) return BadRequest("You already Viewd this user");
+            var userView = await _unitOfWork.ViewsRepository.GetUserView(sourceUserId, ViewedUser.Id);
 
             userView = new UserView
             {
                 SourceUserId = sourceUserId,
-                ViewdUserId = ViewdUser.Id
+                ViewedUserId = ViewedUser.Id
             };
 
-            sourceUser.LikedUsers.Add(userView);
+            sourceUser.ViewedUsers.Add(userView);
 
-            if (await _userRepository.SaveAllAsync()) return Ok();
+           if (await _unitOfWork.Complete()) return Ok();
 
-            return BadRequest("Failed to like user");
+            return BadRequest("Failed to View user");
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ViewDto>>> GetUserLikes([FromQuery]LikesParams likesParams)
+        public async Task<ActionResult<IEnumerable<ViewDto>>> GetUserViews([FromQuery]ViewsParams viewsParams)
         {
-            likesParams.UserId = User.GetUserId();
-            var users = await _ViewsRepository.GetUserLikes(likesParams);
+            viewsParams.UserId = User.GetUserId();
+            var users = await _unitOfWork.ViewsRepository.GetUserViews(viewsParams);
 
             Response.AddPaginationHeader(users.CurrentPage, 
                 users.PageSize, users.TotalCount, users.TotalPages);
